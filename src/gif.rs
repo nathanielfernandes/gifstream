@@ -39,6 +39,10 @@ impl GifEncoder {
         Self::write_extension(buf, ExtensionData::Repetitions(repeat))
     }
 
+    pub fn write_loop(buf: &mut Vec<u8>) {
+        Self::write_extension(buf, ExtensionData::InfiniteRepetitions)
+    }
+
     pub fn write_extension(buf: &mut Vec<u8>, extension: ExtensionData) {
         use ExtensionData::*;
 
@@ -60,6 +64,14 @@ impl GifEncoder {
                 buf.push(flags);
                 buf.extend_from_slice(&delay.to_le_bytes());
                 buf.push(trns);
+            }
+            InfiniteRepetitions => {
+                buf.push(0xFF);
+                buf.push(11);
+                buf.extend_from_slice(b"NETSCAPE2.0");
+                buf.push(3);
+                buf.push(1);
+                buf.extend_from_slice(&0u16.to_le_bytes())
             }
             Repetitions(repeat) => {
                 buf.push(0xFF);
@@ -252,6 +264,7 @@ pub enum ExtensionData {
         transparency_idx: u8,
     },
     Repetitions(u16),
+    InfiniteRepetitions,
 }
 
 // Color table size converted to flag bits
